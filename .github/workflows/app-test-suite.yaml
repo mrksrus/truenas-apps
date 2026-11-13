@@ -12,7 +12,7 @@ concurrency:
 jobs:
   changed-files:
     name: Generate matrix
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       changed-apps-1: ${{ steps.changed-apps.outputs.changed-apps-1 }}
       change-count-1: ${{ steps.changed-apps.outputs.change-count-1 }}
@@ -81,7 +81,7 @@ jobs:
 
   validate-ports:
     name: Validate Ports
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -94,7 +94,7 @@ jobs:
   run-apps-matrix-1:
     name: Run Docker Compose Render/Install (Matrix 1)
     needs: changed-files
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: needs.changed-files.outputs.change-count-1 > 0
     strategy:
       matrix: ${{ fromJson(needs.changed-files.outputs.changed-apps-1) }}
@@ -127,7 +127,7 @@ jobs:
   run-apps-matrix-2:
     name: Run Docker Compose Render/Install (Matrix 2)
     needs: changed-files
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: needs.changed-files.outputs.change-count-2 > 0
     strategy:
       matrix: ${{ fromJson(needs.changed-files.outputs.changed-apps-2) }}
@@ -137,7 +137,7 @@ jobs:
   run-apps-matrix-3:
     name: Run Docker Compose Render/Install (Matrix 3)
     needs: changed-files
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: needs.changed-files.outputs.change-count-3 > 0
     strategy:
       matrix: ${{ fromJson(needs.changed-files.outputs.changed-apps-3) }}
@@ -147,7 +147,7 @@ jobs:
   run-apps-matrix-4:
     name: Run Docker Compose Render/Install (Matrix 4)
     needs: changed-files
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: needs.changed-files.outputs.change-count-4 > 0
     strategy:
       matrix: ${{ fromJson(needs.changed-files.outputs.changed-apps-4) }}
