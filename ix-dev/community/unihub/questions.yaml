@@ -87,6 +87,68 @@ questions:
                   type: uri
                   default: ""
                   required: true
+        - variable: relay
+          label: Calls Relay
+          description: |
+            The relay for calls between different networks, built into UniHub.</br>
+            Forward the Calls Relay Port (TCP and UDP) and UDP ports 49160 to 49200
+            from your router to this server, at the same port numbers.
+          schema:
+            type: dict
+            attrs:
+              - variable: enabled
+                label: Enabled
+                description: Starts the relay and publishes its ports.
+                schema:
+                  type: boolean
+                  default: false
+              - variable: host
+                label: Host
+                description: |
+                  The name or IP address of this server that devices outside your network reach.</br>
+                  Devices are told this host with the Calls Relay Port.</br>
+                  Example: calls.example.com
+                schema:
+                  type: string
+                  default: ""
+                  required: true
+                  valid_chars: "^([A-Za-z0-9.-]+|[0-9A-Fa-f:.]+)$"
+                  valid_chars_error: Enter only a host name or an IP address, without scheme or port.
+                  show_if: [["enabled", "=", true]]
+              - variable: external_ip
+                label: External IP
+                description: |
+                  The public IP address the Internet sees: this server's, or your router's
+                  when the server is at home. One IPv4 or IPv6 address.</br>
+                  Read at start: restart the app after it changes.
+                schema:
+                  type: ipaddr
+                  required: true
+                  show_if: [["enabled", "=", true]]
+              - variable: secret
+                label: Secret
+                description: |
+                  Shared between UniHub and the relay.</br>
+                  Letters, digits and + / = . _ ~ - only, for example from openssl rand -base64 48.
+                schema:
+                  type: string
+                  default: ""
+                  min_length: 32
+                  valid_chars: "^[A-Za-z0-9+/._~-][A-Za-z0-9+/=._~-]*$"
+                  valid_chars_error: Use only letters, digits and + / = . _ ~ - and do not start with =.
+                  required: true
+                  private: true
+                  show_if: [["enabled", "=", true]]
+              - variable: allow_private_peers
+                label: Allow Private Networks
+                description: |
+                  Only when everyone calls from one private network or VPN.</br>
+                  The UDP services of those networks, of the database's network and of this
+                  server then become reachable through the relay for anyone signed in.
+                schema:
+                  type: boolean
+                  default: false
+                  show_if: [["enabled", "=", true]]
         - variable: additional_envs
           label: Additional Environment Variables
           schema:
@@ -165,6 +227,57 @@ questions:
                 schema:
                   type: int
                   default: 30585
+                  min: 1
+                  max: 65535
+                  required: true
+              - variable: host_ips
+                label: Host IPs
+                description: IPs on the host to bind this port
+                schema:
+                  type: list
+                  show_if: [["bind_mode", "=", "published"]]
+                  default: []
+                  items:
+                    - variable: host_ip
+                      label: Host IP
+                      schema:
+                        type: string
+                        required: true
+                        $ref:
+                          - definitions/node_bind_ip
+        - variable: relay_port
+          label: Calls Relay Port
+          description: |
+            The port devices reach the calls relay at, on both TCP and UDP.</br>
+            Internal port: 3478</br>
+            Published only while Calls Relay is enabled, with UDP ports 49160 to 49200 for the sound.
+          schema:
+            type: dict
+            attrs:
+              - variable: bind_mode
+                label: Port Bind Mode
+                description: |
+                  The port bind mode.</br>
+                  - Publish: The port will be published on the host for external access.</br>
+                  - Expose: The port will be exposed for inter-container communication.</br>
+                  - None: The port will not be exposed or published.</br>
+                  Note: If the Dockerfile defines an EXPOSE directive,
+                  the port will still be exposed for inter-container communication regardless of this setting.
+                schema:
+                  type: string
+                  default: "published"
+                  enum:
+                    - value: "published"
+                      description: Publish port on the host for external access
+                    - value: "exposed"
+                      description: Expose port for inter-container communication
+                    - value: ""
+                      description: None
+              - variable: port_number
+                label: Port Number
+                schema:
+                  type: int
+                  default: 30608
                   min: 1
                   max: 65535
                   required: true

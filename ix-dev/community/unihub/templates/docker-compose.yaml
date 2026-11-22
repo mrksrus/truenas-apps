@@ -40,6 +40,29 @@
 
 {% do c1.add_port(values.network.web_port) %}
 
+{% if values.unihub.relay.enabled %}
+  {% set relay = values.unihub.relay %}
+  {% set relay_host = "[%s]"|format(relay.host) if ":" in relay.host else relay.host %}
+  {% set relay_url = "turn:%s:%d"|format(relay_host, values.network.relay_port.port_number) %}
+  {# Without a transport devices use UDP only, so name TCP as well for networks that block UDP #}
+  {% do c1.environment.add_env("TURN_URLS", "%s?transport=udp,%s?transport=tcp"|format(relay_url, relay_url)) %}
+  {% do c1.environment.add_env("TURN_SECRET", relay.secret) %}
+  {% do c1.environment.add_env("TURN_EXTERNAL_IP", relay.external_ip) %}
+  {% do c1.environment.add_env("TURN_ALLOW_PRIVATE_PEERS", relay.allow_private_peers) %}
+
+  {% do c1.add_port(values.network.relay_port, {"container_port": values.consts.internal_relay_port}) %}
+  {% do c1.add_port(values.network.relay_port, {"container_port": values.consts.internal_relay_port, "protocol": "udp"}) %}
+  {# The relay announces these ports to devices, so host and container numbers must match #}
+  {% for port in range(values.consts.relay_min_port, values.consts.relay_max_port + 1) %}
+    {% do c1.add_port({
+      "port_number": port,
+      "protocol": "udp",
+      "bind_mode": values.network.relay_port.bind_mode,
+      "host_ips": values.network.relay_port.host_ips,
+    }) %}
+  {% endfor %}
+{% endif %}
+
 {% do c1.add_storage("/app/uploads", values.storage.uploads) %}
 {% do perm_container.add_or_skip_action("uploads", values.storage.uploads, perms_config) %}
 
